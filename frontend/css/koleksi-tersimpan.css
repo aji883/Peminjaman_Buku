@@ -1,0 +1,641 @@
+/* ============================================
+   KOLEKSI PAGE STYLES
+   ============================================ */
+
+/* Banner */
+.koleksi-banner {
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    color: white;
+}
+
+.koleksi-banner-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    z-index: 0;
+}
+
+.koleksi-banner-bg::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: url('https://www.transparenttextures.com/patterns/cubes.png');
+    opacity: 0.1;
+}
+
+.koleksi-banner-content {
+    position: relative;
+    z-index: 1;
+    padding: 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.koleksi-banner-text h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.koleksi-banner-text p {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.6;
+    max-width: 500px;
+}
+
+.koleksi-banner-stats {
+    display: flex;
+    gap: 1.5rem;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.kb-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0 1rem;
+    border-right: 1px solid rgba(255,255,255,0.2);
+}
+
+.kb-stat:last-child {
+    border-right: none;
+}
+
+.kb-stat-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.3rem;
+}
+
+.kb-stat-label {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.8);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Filter Bar */
+.koleksi-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    background: var(--bg-card);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.filter-pill {
+    padding: 0.6rem 1.25rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-medium);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-pill:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.filter-pill.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(196,149,106,0.3);
+}
+
+.filter-pill.active i {
+    color: white !important;
+}
+
+.pill-count {
+    background: rgba(0,0,0,0.08);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    margin-left: 0.25rem;
+}
+
+.filter-pill.active .pill-count {
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+/* Category Sections */
+.koleksi-section {
+    margin-bottom: 3.5rem;
+}
+
+.koleksi-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 0.75rem;
+}
+
+.koleksi-section-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.kst-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.koleksi-section-title h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.2rem;
+}
+
+.koleksi-section-title span {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.koleksi-section-bar {
+    width: 150px;
+    height: 6px;
+    background: var(--bg-input);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.ksb-fill {
+    height: 100%;
+    border-radius: 3px;
+}
+
+.koleksi-book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Empty State */
+.koleksi-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px dashed var(--border);
+    color: var(--text-light);
+}
+
+.koleksi-empty-state i {
+    font-size: 3.5rem;
+    color: var(--border);
+    margin-bottom: 1.5rem;
+}
+
+.koleksi-empty-state h3 {
+    font-size: 1.25rem;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.koleksi-empty-state p {
+    font-size: 0.9rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Mini Save Button on Book Cards */
+.save-btn-mini {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.25s ease;
+    z-index: 2;
+    opacity: 0;
+}
+
+.book-card:hover .save-btn-mini {
+    opacity: 1;
+}
+
+.save-btn-mini:hover {
+    background: white;
+    color: var(--accent);
+    transform: scale(1.1);
+}
+
+.save-btn-mini.saved {
+    opacity: 1;
+    background: var(--accent);
+    color: white;
+}
+
+/* ============================================
+   TERSIMPAN PAGE STYLES
+   ============================================ */
+
+/* Stats Row */
+.tersimpan-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.ts-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.ts-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+}
+
+.ts-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.ts-stat-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.ts-stat-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    line-height: 1.2;
+}
+
+.ts-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+/* Toolbar */
+.tersimpan-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.5rem;
+}
+
+.tt-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tt-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.tt-view-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tt-view-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.tt-view-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
+/* Empty State */
+.tersimpan-empty {
+    text-align: center;
+    padding: 5rem 2rem;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.te-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(196,149,106,0.1);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin: 0 auto 1.5rem;
+}
+
+.tersimpan-empty h3 {
+    font-size: 1.4rem;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.tersimpan-empty p {
+    color: var(--text-light);
+    max-width: 400px;
+    margin: 0 auto;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* List View */
+.tersimpan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.saved-list-item {
+    display: flex;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    gap: 1.5rem;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.saved-list-item:hover {
+    transform: translateX(5px);
+    box-shadow: var(--shadow-hover);
+    border-color: var(--border);
+}
+
+.sli-cover {
+    width: 70px;
+    height: 100px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.sli-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.list-no-cover {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #D4C5B2, #A8C5C8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.6);
+    font-size: 1.5rem;
+}
+
+.sli-info {
+    flex: 1;
+}
+
+.sli-info h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.sli-author {
+    font-size: 0.85rem;
+    color: var(--text-medium);
+    margin-bottom: 0.75rem;
+}
+
+.sli-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.sli-stock {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.sli-stock.empty {
+    color: var(--danger);
+}
+
+.sli-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Grid View */
+.tersimpan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.saved-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.saved-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-hover);
+}
+
+.saved-card-cover {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    position: relative;
+}
+
+.saved-card-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.saved-card-cover .no-cover {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #D4C5B2, #A8C5C8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 3rem;
+}
+
+.save-remove-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    color: var(--danger);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    transition: all 0.2s;
+    opacity: 0;
+}
+
+.saved-card:hover .save-remove-btn {
+    opacity: 1;
+}
+
+.save-remove-btn:hover {
+    background: var(--danger);
+    color: white;
+    transform: scale(1.1);
+}
+
+.saved-card-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Animations */
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .koleksi-banner-content {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+    }
+    .koleksi-banner-text h2 {
+        justify-content: center;
+    }
+    .koleksi-banner-stats {
+        width: 100%;
+        justify-content: space-around;
+        padding: 1rem;
+    }
+    .tersimpan-stats-row {
+        grid-template-columns: 1fr;
+    }
+    .tersimpan-toolbar {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    .tt-right {
+        justify-content: space-between;
+    }
+    .saved-list-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    .sli-meta {
+        justify-content: center;
+    }
+    .sli-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}

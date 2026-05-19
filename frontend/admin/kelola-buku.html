@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Buku - PerpusOnline Admin</title>
+    <meta name="description" content="Halaman manajemen buku perpustakaan. Tambah, edit, dan hapus data buku.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = '../login.html';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-profile">
+                <div class="avatar">A</div>
+                <p class="welcome-text">Welcome Back</p>
+                <p class="user-name" id="adminName">Administrator</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <a href="kelola-buku.html" class="active">
+                    <i class="fas fa-book"></i> Kelola Buku
+                </a>
+                <a href="peminjaman.html">
+                    <i class="fas fa-exchange-alt"></i> Peminjaman
+                </a>
+                <a href="pengembalian.html">
+                    <i class="fas fa-undo"></i> Pengembalian
+                </a>
+                <a href="laporan.html">
+                    <i class="fas fa-chart-bar"></i> Laporan
+                </a>
+            </nav>
+
+            <div class="sidebar-brand">
+                <a href="#" onclick="logout()" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); text-decoration: none; font-size: 0.85rem; justify-content: center;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <h1 class="page-title">Kelola Buku</h1>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="search-box" style="width: 280px;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchBookInput" placeholder="Cari judul atau penulis..." oninput="filterBooks(this.value)">
+                    </div>
+                    <button onclick="openModal()" class="btn btn-primary" id="addBookBtn">
+                        <i class="fas fa-plus"></i> Tambah Buku
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alert -->
+            <div id="alertMessage" class="alert"></div>
+
+            <!-- Stats Cards -->
+            <div class="book-stats-row" id="bookStatsRow">
+                <div class="book-stat-card">
+                    <div class="stat-icon" style="background: rgba(196,149,106,0.15); color: var(--accent);">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statTotalBooks">0</span>
+                        <span class="stat-label">Total Buku</span>
+                    </div>
+                </div>
+                <div class="book-stat-card">
+                    <div class="stat-icon" style="background: rgba(39,174,96,0.12); color: var(--success);">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statAvailable">0</span>
+                        <span class="stat-label">Tersedia</span>
+                    </div>
+                </div>
+                <div class="book-stat-card">
+                    <div class="stat-icon" style="background: rgba(231,76,60,0.1); color: var(--danger);">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statOutOfStock">0</span>
+                        <span class="stat-label">Stok Habis</span>
+                    </div>
+                </div>
+                <div class="book-stat-card">
+                    <div class="stat-icon" style="background: rgba(108,92,231,0.1); color: var(--badge-mystery);">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="statTotalStock">0</span>
+                        <span class="stat-label">Total Stok</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Books Table -->
+            <div class="table-container" id="booksTableContainer">
+                <div class="table-toolbar">
+                    <span class="table-info" id="tableInfo">Menampilkan semua buku</span>
+                    <div class="table-actions">
+                        <select id="sortSelect" class="table-sort-select" onchange="sortBooks(this.value)">
+                            <option value="newest">Terbaru</option>
+                            <option value="oldest">Terlama</option>
+                            <option value="title-asc">Judul A-Z</option>
+                            <option value="title-desc">Judul Z-A</option>
+                            <option value="stock-low">Stok Terendah</option>
+                            <option value="stock-high">Stok Tertinggi</option>
+                        </select>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 65px;">Cover</th>
+                            <th>Judul Buku</th>
+                            <th>Penulis</th>
+                            <th>Penerbit</th>
+                            <th style="width: 70px;">Tahun</th>
+                            <th style="width: 80px;">Stok</th>
+                            <th style="width: 100px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="booksTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-light);">
+                                <i class="fas fa-spinner fa-spin fa-lg"></i>
+                                <p style="margin-top: 0.75rem;">Memuat data buku...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Book Form Modal -->
+    <div class="modal" id="bookModal">
+        <div class="modal-content" style="max-width: 560px;">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <h3 id="modalTitle" style="margin-bottom: 1.5rem;">Tambah Buku Baru</h3>
+            
+            <form id="bookForm" enctype="multipart/form-data">
+                <input type="hidden" id="bookId">
+                
+                <!-- Cover Upload -->
+                <div class="form-group" style="text-align: center;">
+                    <label>Sampul Buku</label>
+                    <div id="coverPreview" style="width: 130px; height: 185px; margin: 0.5rem auto; border-radius: 12px; border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; transition: all 0.3s ease; background: var(--bg-input);" onclick="document.getElementById('cover').click()">
+                        <div id="coverPlaceholder" style="text-align: center; color: var(--text-light);">
+                            <i class="fas fa-image fa-2x"></i>
+                            <p style="font-size: 0.7rem; margin-top: 0.5rem;">Klik untuk upload</p>
+                        </div>
+                        <img id="coverImg" src="" alt="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                    </div>
+                    <input type="file" id="cover" accept="image/*" style="display: none;" onchange="previewCover(this)">
+                </div>
+
+                <div class="form-group">
+                    <label>Judul Buku *</label>
+                    <input type="text" id="judul" class="form-control" required placeholder="Masukkan judul buku">
+                </div>
+                <div class="form-group">
+                    <label>Penulis</label>
+                    <input type="text" id="penulis" class="form-control" placeholder="Nama penulis">
+                </div>
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select id="kategori" class="form-control">
+                        <option value="fiksi">Fiksi</option>
+                        <option value="edukasi">Edukasi</option>
+                        <option value="sastra">Sastra</option>
+                        <option value="sejarah">Sejarah</option>
+                        <option value="sains">Sains</option>
+                        <option value="lainnya" selected>Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Penerbit</label>
+                    <input type="text" id="penerbit" class="form-control" placeholder="Nama penerbit">
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Tahun Terbit</label>
+                        <input type="number" id="tahun" class="form-control" min="1900" max="2100" placeholder="2024">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Stok</label>
+                        <input type="number" id="stok" class="form-control" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Deskripsi / Tentang Buku</label>
+                    <textarea id="deskripsi" class="form-control" rows="3" placeholder="Tulis sinopsis atau deskripsi buku..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-save"></i> Simpan Buku
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Book Detail View Modal -->
+    <div class="modal" id="bookViewModal">
+        <div class="modal-content book-detail-modal">
+            <span class="close-modal" onclick="closeViewModal()">&times;</span>
+            <div class="book-detail-layout">
+                <div class="book-detail-cover" id="viewCoverWrapper"></div>
+                <div class="book-detail-info">
+                    <h2 class="book-detail-title" id="viewTitle"></h2>
+                    <p class="book-detail-author" id="viewAuthor"></p>
+                    <div class="book-detail-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-building"></i>
+                            <span id="viewPublisher">-</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span id="viewYear">-</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-tags"></i>
+                            <span id="viewKategori" style="text-transform: capitalize;">Lainnya</span>
+                        </div>
+                        <div class="meta-item" id="viewStockItem">
+                            <i class="fas fa-layer-group"></i>
+                            <span id="viewStock">0</span>
+                        </div>
+                    </div>
+                    <div class="book-detail-divider"></div>
+                    <div class="book-detail-desc-section">
+                        <h4><i class="fas fa-align-left"></i> Deskripsi</h4>
+                        <p class="book-detail-desc" id="viewDescription">Tidak ada deskripsi.</p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; margin-top: auto;">
+                        <button class="btn btn-outline" style="flex:1; justify-content:center;" id="viewEditBtn">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-danger" style="flex:1; justify-content:center;" id="viewDeleteBtn">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        // Helper specifically for FormData in Admin
+        async function fetchFormData(endpoint, formData, method = 'POST') {
+            const url = `http://localhost:5000/api${endpoint}`;
+            const token = localStorage.getItem('token');
+            const response = await fetch(url, {
+                method,
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Something went wrong');
+            return data;
+        }
+    </script>
+    <script>
+        let allBooksAdmin = [];
+        let filteredBooks = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminName = localStorage.getItem('admin_name');
+            if (adminName) {
+                document.getElementById('adminName').textContent = adminName;
+            }
+            loadBooksTable();
+            document.getElementById('bookForm').addEventListener('submit', handleBookSubmit);
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('admin_name');
+            window.location.href = '../login.html';
+        }
+
+        function showAlert(message, type = 'success') {
+            const alertBox = document.getElementById('alertMessage');
+            alertBox.textContent = message;
+            alertBox.className = `alert ${type}`;
+            setTimeout(() => { 
+                alertBox.className = 'alert';
+            }, 3000);
+        }
+
+        // Cover preview
+        function previewCover(input) {
+            const img = document.getElementById('coverImg');
+            const placeholder = document.getElementById('coverPlaceholder');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Modal functions
+        const modal = document.getElementById('bookModal');
+        const form = document.getElementById('bookForm');
+
+        function openModal(book = null) {
+            modal.classList.add('active');
+            form.reset();
+            
+            const img = document.getElementById('coverImg');
+            const placeholder = document.getElementById('coverPlaceholder');
+            img.style.display = 'none';
+            img.src = '';
+            placeholder.style.display = 'block';
+
+            if (book) {
+                document.getElementById('modalTitle').textContent = 'Edit Buku';
+                document.getElementById('bookId').value = book.id_buku;
+                document.getElementById('judul').value = book.judul;
+                document.getElementById('penulis').value = book.penulis || '';
+                document.getElementById('penerbit').value = book.penerbit || '';
+                document.getElementById('kategori').value = book.kategori || 'lainnya';
+                document.getElementById('tahun').value = book.tahun || '';
+                document.getElementById('stok').value = book.stok || 0;
+                document.getElementById('deskripsi').value = book.deskripsi || '';
+                
+                if (book.cover) {
+                    img.src = '../uploads/' + book.cover;
+                    img.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+            } else {
+                document.getElementById('modalTitle').textContent = 'Tambah Buku Baru';
+                document.getElementById('bookId').value = '';
+            }
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        // View Modal
+        function openViewModal(bookId) {
+            const book = allBooksAdmin.find(b => b.id_buku === bookId);
+            if (!book) return;
+
+            const coverWrapper = document.getElementById('viewCoverWrapper');
+            if (book.cover) {
+                coverWrapper.innerHTML = `<img src="../uploads/${book.cover}" alt="${book.judul}">`;
+            } else {
+                coverWrapper.innerHTML = `<div class="detail-no-cover"><i class="fas fa-book"></i><span>${book.judul.charAt(0)}</span></div>`;
+            }
+
+            document.getElementById('viewTitle').textContent = book.judul;
+            document.getElementById('viewAuthor').textContent = book.penulis || 'Penulis tidak diketahui';
+            document.getElementById('viewPublisher').textContent = book.penerbit || 'Tidak diketahui';
+            document.getElementById('viewYear').textContent = book.tahun || '-';
+            document.getElementById('viewKategori').textContent = book.kategori || 'lainnya';
+
+            const stockEl = document.getElementById('viewStock');
+            const stockItem = document.getElementById('viewStockItem');
+            if (book.stok > 0) {
+                stockEl.textContent = `${book.stok} Tersedia`;
+                stockItem.className = 'meta-item in-stock';
+            } else {
+                stockEl.textContent = 'Stok Habis';
+                stockItem.className = 'meta-item out-of-stock';
+            }
+
+            document.getElementById('viewDescription').textContent = book.deskripsi || 'Tidak ada deskripsi untuk buku ini.';
+
+            // Wire up edit/delete buttons
+            document.getElementById('viewEditBtn').onclick = () => {
+                closeViewModal();
+                openModal(book);
+            };
+            document.getElementById('viewDeleteBtn').onclick = () => {
+                closeViewModal();
+                deleteBook(book.id_buku);
+            };
+
+            document.getElementById('bookViewModal').classList.add('active');
+        }
+
+        function closeViewModal() {
+            document.getElementById('bookViewModal').classList.remove('active');
+        }
+
+        // Filter & Sort
+        function filterBooks(query) {
+            if (!query) {
+                filteredBooks = [...allBooksAdmin];
+            } else {
+                const q = query.toLowerCase();
+                filteredBooks = allBooksAdmin.filter(b =>
+                    b.judul.toLowerCase().includes(q) ||
+                    (b.penulis && b.penulis.toLowerCase().includes(q)) ||
+                    (b.penerbit && b.penerbit.toLowerCase().includes(q))
+                );
+            }
+            updateTableInfo();
+            renderBooksTable(filteredBooks);
+        }
+
+        function sortBooks(sortBy) {
+            const books = [...filteredBooks];
+            switch(sortBy) {
+                case 'newest':
+                    books.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                    break;
+                case 'oldest':
+                    books.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+                    break;
+                case 'title-asc':
+                    books.sort((a,b) => a.judul.localeCompare(b.judul));
+                    break;
+                case 'title-desc':
+                    books.sort((a,b) => b.judul.localeCompare(a.judul));
+                    break;
+                case 'stock-low':
+                    books.sort((a,b) => a.stok - b.stok);
+                    break;
+                case 'stock-high':
+                    books.sort((a,b) => b.stok - a.stok);
+                    break;
+            }
+            filteredBooks = books;
+            renderBooksTable(filteredBooks);
+        }
+
+        function updateTableInfo() {
+            const info = document.getElementById('tableInfo');
+            if (filteredBooks.length === allBooksAdmin.length) {
+                info.textContent = `Menampilkan semua buku (${allBooksAdmin.length})`;
+            } else {
+                info.textContent = `Menampilkan ${filteredBooks.length} dari ${allBooksAdmin.length} buku`;
+            }
+        }
+
+        function updateStats(books) {
+            document.getElementById('statTotalBooks').textContent = books.length;
+            document.getElementById('statAvailable').textContent = books.filter(b => b.stok > 0).length;
+            document.getElementById('statOutOfStock').textContent = books.filter(b => b.stok <= 0).length;
+            document.getElementById('statTotalStock').textContent = books.reduce((sum, b) => sum + (b.stok || 0), 0);
+        }
+
+        // CRUD Operations
+        async function loadBooksTable() {
+            const tbody = document.getElementById('booksTableBody');
+            try {
+                const books = await fetchAPI('/books');
+                allBooksAdmin = books;
+                filteredBooks = [...books];
+                
+                updateStats(books);
+                updateTableInfo();
+                renderBooksTable(books);
+
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color: var(--danger); text-align: center; padding: 2rem;">
+                    <i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem;"></i>Error: ${error.message}
+                </td></tr>`;
+            }
+        }
+
+        function renderBooksTable(books) {
+            const tbody = document.getElementById('booksTableBody');
+
+            if (books.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-light); padding: 3rem;">
+                    <i class="fas fa-inbox fa-2x" style="opacity: 0.3; margin-bottom: 0.75rem; display: block;"></i>
+                    Tidak ada buku ditemukan.
+                </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = books.map(book => {
+                const coverHtml = book.cover 
+                    ? `<img src="../uploads/${book.cover}" alt="Cover" style="width: 45px; height: 65px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;" onclick="event.stopPropagation(); openViewModal(${book.id_buku})">` 
+                    : `<div style="width: 45px; height: 65px; background: linear-gradient(135deg, #D4C5B2, #A8C5C8); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;" onclick="event.stopPropagation(); openViewModal(${book.id_buku})"><i class="fas fa-book" style="color: rgba(255,255,255,0.6); font-size: 0.9rem;"></i></div>`;
+                
+                const bookForEdit = { ...book };
+                const bookJson = JSON.stringify(bookForEdit).replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+
+                return `
+                    <tr onclick="openViewModal(${book.id_buku})" style="cursor: pointer;">
+                        <td>${coverHtml}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-weight: 600; color: var(--text-dark);">${book.judul}</span>
+                                ${book.kategori ? `<span style="font-size: 0.65rem; background: rgba(196,149,106,0.15); color: var(--accent); padding: 0.15rem 0.4rem; border-radius: 4px; text-transform: capitalize;">${book.kategori}</span>` : ''}
+                            </div>
+                            ${book.deskripsi ? `<p style="font-size: 0.72rem; color: var(--text-light); margin-top: 0.2rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${book.deskripsi}</p>` : ''}
+                        </td>
+                        <td>${book.penulis || '-'}</td>
+                        <td>${book.penerbit || '-'}</td>
+                        <td>${book.tahun || '-'}</td>
+                        <td><span class="stok-badge ${book.stok > 0 ? '' : 'empty'}">${book.stok}</span></td>
+                        <td>
+                            <div class="actions" onclick="event.stopPropagation();">
+                                <button class="btn btn-outline btn-sm" onclick='openModal(JSON.parse(this.dataset.book))' data-book="${bookJson}" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteBook(${book.id_buku})" title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function handleBookSubmit(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('bookId').value;
+            const coverFile = document.getElementById('cover').files[0];
+
+            const formData = new FormData();
+            formData.append('judul', document.getElementById('judul').value);
+            formData.append('penulis', document.getElementById('penulis').value);
+            formData.append('penerbit', document.getElementById('penerbit').value);
+            formData.append('kategori', document.getElementById('kategori').value);
+            formData.append('tahun', document.getElementById('tahun').value);
+            formData.append('stok', document.getElementById('stok').value);
+            formData.append('deskripsi', document.getElementById('deskripsi').value);
+            
+            if (coverFile) {
+                formData.append('cover', coverFile);
+            }
+
+            try {
+                if (id) {
+                    await fetchFormData(`/books/${id}`, formData, 'PUT');
+                    showAlert('Buku berhasil diperbarui');
+                } else {
+                    await fetchFormData('/books', formData, 'POST');
+                    showAlert('Buku berhasil ditambahkan');
+                }
+                closeModal();
+                loadBooksTable();
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function deleteBook(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus buku ini?')) {
+                try {
+                    await fetchAPI(`/books/${id}`, { method: 'DELETE' });
+                    showAlert('Buku berhasil dihapus');
+                    loadBooksTable();
+                } catch (error) {
+                    showAlert(error.message, 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

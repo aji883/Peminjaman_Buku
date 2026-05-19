@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Peminjaman - PerpusOnline</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = '../login.html';
+        }
+    </script>
+    <style>
+        /* Summary cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.8rem;
+        }
+        .stat-card {
+            background: var(--bg-card, #fff);
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 14px;
+            padding: 1.2rem 1.4rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stat-card .stat-icon { font-size: 1.5rem; margin-bottom: 0.2rem; }
+        .stat-card .stat-num  { font-size: 1.7rem; font-weight: 800; color: var(--primary, #4f46e5); }
+        .stat-card .stat-lbl  { font-size: 0.78rem; color: var(--text-light, #888); font-weight: 500; }
+
+        /* Denda badge */
+        .denda-badge { display:inline-block;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.78rem;font-weight:600; }
+        .denda-ada  { background:#fff3e0;color:#c0600a; }
+        .denda-none { background:#e6f9f0;color:#1a7a4a; }
+
+        /* Filter row */
+        .filter-row { display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1.2rem; }
+        .filter-row .form-group { margin:0;flex:1;min-width:160px; }
+        .filter-row label { font-size:0.8rem;font-weight:600;margin-bottom:0.35rem;display:block;color:var(--text-light,#888); }
+
+        /* Status pills */
+        .status-badge.dikembalikan { background:#e0f2fe;color:#0369a1; }
+        .status-badge.selesai      { background:#e6f9f0;color:#1a7a4a; }
+        .status-badge.dipinjam     { background:#fef9c3;color:#92400e; }
+        .status-badge.diproses     { background:#ede9fe;color:#5b21b6; }
+        .status-badge.ditolak      { background:#fee2e2;color:#b91c1c; }
+
+        /* Print */
+        @media print {
+            .sidebar, .top-bar button, .filter-row, .no-print { display: none !important; }
+            .main-content { margin: 0 !important; padding: 0 !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-profile">
+                <div class="avatar">A</div>
+                <p class="welcome-text">Welcome Back</p>
+                <p class="user-name" id="adminName">Administrator</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <a href="kelola-buku.html">
+                    <i class="fas fa-book"></i> Kelola Buku
+                </a>
+                <a href="peminjaman.html">
+                    <i class="fas fa-exchange-alt"></i> Peminjaman
+                </a>
+                <a href="pengembalian.html">
+                    <i class="fas fa-undo"></i> Pengembalian
+                </a>
+                <a href="laporan.html" class="active">
+                    <i class="fas fa-chart-bar"></i> Laporan
+                </a>
+            </nav>
+            <div class="sidebar-brand">
+                <a href="#" onclick="logout()" style="display:flex;align-items:center;gap:0.5rem;color:var(--text-light);text-decoration:none;font-size:0.85rem;justify-content:center;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Laporan Peminjaman</h1>
+                <button onclick="window.print()" class="btn" style="background:var(--bg-input,#f0f0f0);color:var(--text,#333);border:1px solid var(--border);">
+                    <i class="fas fa-print"></i> Cetak
+                </button>
+            </div>
+
+            <!-- Summary cards -->
+            <div class="stats-row" id="statsRow">
+                <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-num" id="statTotal">—</div><div class="stat-lbl">Total Peminjaman</div></div>
+                <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-num" id="statDiproses">—</div><div class="stat-lbl">Menunggu Konfirmasi</div></div>
+                <div class="stat-card"><div class="stat-icon">📖</div><div class="stat-num" id="statDipinjam">—</div><div class="stat-lbl">Sedang Dipinjam</div></div>
+                <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-num" id="statKembali">—</div><div class="stat-lbl">Sudah Dikembalikan</div></div>
+                <div class="stat-card"><div class="stat-icon">❌</div><div class="stat-num" id="statDitolak">—</div><div class="stat-lbl">Ditolak</div></div>
+                <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-num" id="statDenda" style="font-size:1.2rem;">—</div><div class="stat-lbl">Total Denda</div></div>
+            </div>
+
+            <div id="alertMessage" class="alert"></div>
+
+            <!-- Filter -->
+            <div class="filter-row no-print">
+                <div class="form-group">
+                    <label>Filter Status</label>
+                    <select id="filterStatus" class="form-control" onchange="applyFilter()">
+                        <option value="">Semua Status</option>
+                        <option value="diproses">Diproses</option>
+                        <option value="dipinjam">Dipinjam</option>
+                        <option value="dikembalikan">Dikembalikan</option>
+                        <option value="ditolak">Ditolak</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cari Nama / Judul</label>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Cari..." oninput="applyFilter()">
+                </div>
+                <div class="form-group" style="flex:none;">
+                    <label>&nbsp;</label>
+                    <button onclick="resetFilter()" class="btn" style="background:var(--bg-input,#f0f0f0);color:var(--text,#333);border:1px solid var(--border);">
+                        <i class="fas fa-times"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-container">
+                <table id="reportTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Peminjam</th>
+                            <th>Judul Buku</th>
+                            <th>Tgl Pinjam</th>
+                            <th>Jatuh Tempo</th>
+                            <th>Tgl Kembali Aktual</th>
+                            <th>Status</th>
+                            <th>Denda</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text-light);">
+                            <i class="fas fa-spinner fa-spin"></i> Memuat data laporan...
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p id="rowCount" style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-light,#888);"></p>
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        const adminName = localStorage.getItem('admin_name');
+        if (adminName) document.getElementById('adminName').textContent = adminName;
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('admin_name');
+            window.location.href = '../login.html';
+        }
+
+        function fmt(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; }
+
+        let allLoans = [];       // raw loans from /api/loans
+        let allReturns = [];     // raw returns from /api/returns
+
+        async function loadReport() {
+            const alertBox = document.getElementById('alertMessage');
+            try {
+                [allLoans, allReturns] = await Promise.all([
+                    fetchAPI('/loans'),
+                    fetchAPI('/returns')
+                ]);
+                computeStats();
+                applyFilter();
+            } catch(e) {
+                alertBox.textContent = 'Gagal memuat data: ' + e.message;
+                alertBox.className = 'alert error';
+            }
+        }
+
+        function computeStats() {
+            const total       = allLoans.length;
+            const diproses    = allLoans.filter(l => l.status === 'diproses').length;
+            const dipinjam    = allLoans.filter(l => l.status === 'dipinjam').length;
+            const dikembalikan= allLoans.filter(l => l.status === 'dikembalikan').length;
+            const ditolak     = allLoans.filter(l => l.status === 'ditolak').length;
+            const totalDenda  = allReturns.reduce((sum, r) => sum + (r.denda || 0), 0);
+
+            document.getElementById('statTotal').textContent     = total;
+            document.getElementById('statDiproses').textContent  = diproses;
+            document.getElementById('statDipinjam').textContent  = dipinjam;
+            document.getElementById('statKembali').textContent   = dikembalikan;
+            document.getElementById('statDitolak').textContent   = ditolak;
+            document.getElementById('statDenda').textContent     = 'Rp ' + totalDenda.toLocaleString('id-ID');
+        }
+
+        // Build a lookup: id_peminjaman → return record
+        function buildReturnMap() {
+            const map = {};
+            allReturns.forEach(r => { map[r.id_peminjaman] = r; });
+            return map;
+        }
+
+        function applyFilter() {
+            const statusFilter = document.getElementById('filterStatus').value;
+            const search       = document.getElementById('searchInput').value.toLowerCase();
+            const returnMap    = buildReturnMap();
+
+            let data = allLoans.filter(l => {
+                const matchStatus = !statusFilter || l.status === statusFilter;
+                const matchSearch = !search
+                    || (l.nama_user||'').toLowerCase().includes(search)
+                    || (l.judul||'').toLowerCase().includes(search);
+                return matchStatus && matchSearch;
+            });
+
+            renderTable(data, returnMap);
+        }
+
+        function renderTable(data, returnMap) {
+            const tbody = document.getElementById('reportTableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">Tidak ada data.</td></tr>';
+                document.getElementById('rowCount').textContent = '';
+                return;
+            }
+
+            tbody.innerHTML = data.map((l, i) => {
+                const ret = returnMap[l.id_peminjaman];
+                const tglReal = ret ? fmt(ret.tgl_kembali_real) : '-';
+                const denda   = ret ? ret.denda : null;
+                const dendaHtml = ret
+                    ? (denda > 0
+                        ? `<span class="denda-badge denda-ada">Rp ${denda.toLocaleString('id-ID')}</span>`
+                        : `<span class="denda-badge denda-none">Tidak Ada</span>`)
+                    : '-';
+                return `<tr>
+                    <td style="color:var(--text-light,#888);font-size:0.8rem;">${i+1}</td>
+                    <td><strong>${l.nama_user}</strong></td>
+                    <td>${l.judul}</td>
+                    <td>${fmt(l.tgl_pinjam)}</td>
+                    <td>${fmt(l.tgl_kembali)}</td>
+                    <td>${tglReal}</td>
+                    <td><span class="status-badge ${l.status}">${l.status}</span></td>
+                    <td>${dendaHtml}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('rowCount').textContent = `Menampilkan ${data.length} dari ${allLoans.length} data.`;
+        }
+
+        function resetFilter() {
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('searchInput').value  = '';
+            applyFilter();
+        }
+
+        window.onload = loadReport;
+    </script>
+</body>
+</html>

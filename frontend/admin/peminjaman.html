@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Peminjaman - PerpusOnline</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = '../login.html';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-profile">
+                <div class="avatar">A</div>
+                <p class="welcome-text">Welcome Back</p>
+                <p class="user-name" id="adminName">Administrator</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <a href="kelola-buku.html">
+                    <i class="fas fa-book"></i> Kelola Buku
+                </a>
+                <a href="peminjaman.html" class="active">
+                    <i class="fas fa-exchange-alt"></i> Peminjaman
+                </a>
+                <a href="pengembalian.html">
+                    <i class="fas fa-undo"></i> Pengembalian
+                </a>
+                <a href="laporan.html">
+                    <i class="fas fa-chart-bar"></i> Laporan
+                </a>
+            </nav>
+
+            <div class="sidebar-brand">
+                <a href="#" onclick="logout()" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); text-decoration: none; font-size: 0.85rem; justify-content: center;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Konfirmasi Peminjaman</h1>
+            </div>
+
+            <div id="alertMessage" class="alert"></div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Buku</th>
+                            <th>Tgl Pinjam</th>
+                            <th>Tgl Kembali</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loansTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-light);">
+                                <i class="fas fa-spinner fa-spin"></i> Memuat data peminjaman...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        // Update Admin Name
+        const adminName = localStorage.getItem('admin_name');
+        if (adminName) document.getElementById('adminName').textContent = adminName;
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('admin_name');
+            window.location.href = '../login.html';
+        }
+
+        async function loadLoans() {
+            const tableBody = document.getElementById('loansTableBody');
+            const alertBox = document.getElementById('alertMessage');
+
+            try {
+                const loans = await fetchAPI('/loans');
+                
+                if (loans.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Belum ada permintaan peminjaman.</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = loans.map(loan => {
+                    const statusClass = `status-badge ${loan.status}`;
+                    const tglPinjam = new Date(loan.tgl_pinjam).toLocaleDateString('id-ID');
+                    const tglKembali = new Date(loan.tgl_kembali).toLocaleDateString('id-ID');
+                    
+                    let actions = '-';
+                    if (loan.status === 'diproses') {
+                        actions = `
+                            <div class="actions">
+                                <button class="btn btn-sm" style="background: var(--success); color: white;" onclick="updateLoanStatus(${loan.id_peminjaman}, 'dipinjam')">
+                                    <i class="fas fa-check"></i> Terima
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="updateLoanStatus(${loan.id_peminjaman}, 'ditolak')">
+                                    <i class="fas fa-times"></i> Tolak
+                                </button>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <tr>
+                            <td><strong>${loan.nama_user}</strong></td>
+                            <td>${loan.judul}</td>
+                            <td>${tglPinjam}</td>
+                            <td>${tglKembali}</td>
+                            <td><span class="${statusClass}">${loan.status}</span></td>
+                            <td>${actions}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                alertBox.textContent = 'Gagal memuat data: ' + error.message;
+                alertBox.className = 'alert error';
+            }
+        }
+
+        async function updateLoanStatus(id, status) {
+            const alertBox = document.getElementById('alertMessage');
+            if (!confirm(`Apakah Anda yakin ingin mengubah status menjadi ${status}?`)) return;
+
+            try {
+                const response = await fetchAPI(`/loans/${id}/status`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status })
+                });
+
+                alertBox.textContent = response.message;
+                alertBox.className = 'alert success';
+                loadLoans();
+
+                setTimeout(() => {
+                    alertBox.textContent = '';
+                    alertBox.className = 'alert';
+                }, 3000);
+
+            } catch (error) {
+                alertBox.textContent = 'Gagal update status: ' + error.message;
+                alertBox.className = 'alert error';
+            }
+        }
+
+        window.onload = loadLoans;
+    </script>
+</body>
+</html>

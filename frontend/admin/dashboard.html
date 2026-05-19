@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - PerpusOnline</title>
+    <meta name="description" content="Dashboard admin perpustakaan online. Pantau statistik dan aktivitas perpustakaan.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script>
+        if (!localStorage.getItem('token')) {
+            window.location.href = '../login.html';
+        }
+    </script>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-profile">
+                <div class="avatar">A</div>
+                <p class="welcome-text">Welcome Back</p>
+                <p class="user-name" id="adminName">Administrator</p>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="active">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <a href="kelola-buku.html">
+                    <i class="fas fa-book"></i> Kelola Buku
+                </a>
+                <a href="peminjaman.html">
+                    <i class="fas fa-exchange-alt"></i> Peminjaman
+                </a>
+                <a href="pengembalian.html">
+                    <i class="fas fa-undo"></i> Pengembalian
+                </a>
+                <a href="laporan.html">
+                    <i class="fas fa-chart-bar"></i> Laporan
+                </a>
+            </nav>
+
+            <div class="sidebar-brand">
+                <a href="#" onclick="logout()" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-light); text-decoration: none; font-size: 0.85rem; justify-content: center;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="top-bar-actions">
+                    <span style="font-size: 0.85rem; color: var(--text-light);" id="dashboardDate"></span>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <div class="dashboard-stats-grid" id="dashStatsGrid">
+                <div class="dash-stat-card accent">
+                    <div class="dash-stat-icon"><i class="fas fa-book-open"></i></div>
+                    <div class="dash-stat-body">
+                        <span class="dash-stat-value" id="dashTotalBooks">-</span>
+                        <span class="dash-stat-label">Total Buku</span>
+                    </div>
+                </div>
+                <div class="dash-stat-card success">
+                    <div class="dash-stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="dash-stat-body">
+                        <span class="dash-stat-value" id="dashTotalUsers">-</span>
+                        <span class="dash-stat-label">Anggota</span>
+                    </div>
+                </div>
+                <div class="dash-stat-card info">
+                    <div class="dash-stat-icon"><i class="fas fa-hand-holding"></i></div>
+                    <div class="dash-stat-body">
+                        <span class="dash-stat-value" id="dashTotalLoans">-</span>
+                        <span class="dash-stat-label">Peminjaman</span>
+                    </div>
+                </div>
+                <div class="dash-stat-card warning">
+                    <div class="dash-stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="dash-stat-body">
+                        <span class="dash-stat-value" id="dashPendingLoans">-</span>
+                        <span class="dash-stat-label">Menunggu Konfirmasi</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions & Recent -->
+            <div class="dashboard-content-grid">
+                <!-- Quick Actions -->
+                <div class="dash-card">
+                    <h3 class="dash-card-title"><i class="fas fa-bolt"></i> Aksi Cepat</h3>
+                    <div class="quick-actions-grid">
+                        <a href="kelola-buku.html" class="quick-action-item">
+                            <div class="qa-icon" style="background: rgba(196,149,106,0.15); color: var(--accent);"><i class="fas fa-plus"></i></div>
+                            <span>Tambah Buku</span>
+                        </a>
+                        <a href="peminjaman.html" class="quick-action-item">
+                            <div class="qa-icon" style="background: rgba(39,174,96,0.1); color: var(--success);"><i class="fas fa-check-circle"></i></div>
+                            <span>Konfirmasi Pinjam</span>
+                        </a>
+                        <a href="pengembalian.html" class="quick-action-item">
+                            <div class="qa-icon" style="background: rgba(108,92,231,0.1); color: var(--badge-mystery);"><i class="fas fa-undo"></i></div>
+                            <span>Pengembalian</span>
+                        </a>
+                        <a href="laporan.html" class="quick-action-item">
+                            <div class="qa-icon" style="background: rgba(9,132,227,0.1); color: var(--badge-education);"><i class="fas fa-chart-bar"></i></div>
+                            <span>Lihat Laporan</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Loans -->
+                <div class="dash-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 class="dash-card-title" style="margin-bottom: 0;"><i class="fas fa-history"></i> Peminjaman Terbaru</h3>
+                        <a href="peminjaman.html" style="font-size: 0.8rem; color: var(--accent); text-decoration: none;">Lihat Semua →</a>
+                    </div>
+                    <div id="recentLoansContainer">
+                        <p style="text-align: center; color: var(--text-light); padding: 1.5rem; font-size: 0.85rem;">
+                            <i class="fas fa-spinner fa-spin"></i> Memuat...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Books -->
+            <div class="dash-card" style="margin-top: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 class="dash-card-title" style="margin-bottom: 0;"><i class="fas fa-book"></i> Buku Terbaru</h3>
+                    <a href="kelola-buku.html" style="font-size: 0.8rem; color: var(--accent); text-decoration: none;">Kelola Buku →</a>
+                </div>
+                <div class="recent-books-grid" id="recentBooksGrid">
+                    <p style="text-align: center; color: var(--text-light); padding: 1.5rem; font-size: 0.85rem; grid-column: 1 / -1;">
+                        <i class="fas fa-spinner fa-spin"></i> Memuat...
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminName = localStorage.getItem('admin_name');
+            if (adminName) {
+                document.getElementById('adminName').textContent = adminName;
+            }
+
+            // Set current date
+            const now = new Date();
+            document.getElementById('dashboardDate').textContent = now.toLocaleDateString('id-ID', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            loadDashboardData();
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('admin_name');
+            window.location.href = '../login.html';
+        }
+
+        async function loadDashboardData() {
+            try {
+                // Load books
+                const books = await fetchAPI('/books');
+                document.getElementById('dashTotalBooks').textContent = books.length;
+
+                // Render recent books (latest 5)
+                renderRecentBooks(books.slice(0, 5));
+
+                // Load loans
+                try {
+                    const loans = await fetchAPI('/loans');
+                    document.getElementById('dashTotalLoans').textContent = loans.length;
+                    const pending = loans.filter(l => l.status === 'diproses');
+                    document.getElementById('dashPendingLoans').textContent = pending.length;
+                    renderRecentLoans(loans.slice(0, 5));
+                } catch(e) {
+                    document.getElementById('dashTotalLoans').textContent = '0';
+                    document.getElementById('dashPendingLoans').textContent = '0';
+                    document.getElementById('recentLoansContainer').innerHTML = '<p style="text-align:center;color:var(--text-light);padding:1rem;font-size:0.85rem;">Belum ada data peminjaman.</p>';
+                }
+
+                // Load users count
+                try {
+                    const users = await fetchAPI('/auth/users');
+                    document.getElementById('dashTotalUsers').textContent = users.length || '0';
+                } catch(e) {
+                    document.getElementById('dashTotalUsers').textContent = '-';
+                }
+
+            } catch(error) {
+                console.error('Dashboard error:', error);
+            }
+        }
+
+        function renderRecentBooks(books) {
+            const container = document.getElementById('recentBooksGrid');
+            if (books.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:1.5rem;font-size:0.85rem;grid-column:1/-1;">Belum ada buku.</p>';
+                return;
+            }
+
+            container.innerHTML = books.map(book => {
+                const cover = book.cover
+                    ? `<img src="../uploads/${book.cover}" alt="${book.judul}" style="width:100%;height:100%;object-fit:cover;">`
+                    : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#D4C5B2,#A8C5C8);display:flex;align-items:center;justify-content:center;"><i class="fas fa-book" style="font-size:1.5rem;color:rgba(255,255,255,0.5);"></i></div>`;
+                return `
+                    <div class="recent-book-card">
+                        <div class="recent-book-cover">${cover}</div>
+                        <p class="recent-book-title">${book.judul}</p>
+                        <p class="recent-book-author">${book.penulis || '-'}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRecentLoans(loans) {
+            const container = document.getElementById('recentLoansContainer');
+            if (loans.length === 0) {
+                container.innerHTML = '<p style="text-align:center;color:var(--text-light);padding:1rem;font-size:0.85rem;">Belum ada data peminjaman.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="recent-loans-list">
+                    ${loans.map(loan => {
+                        const statusColor = loan.status === 'diproses' ? 'var(--accent)' : loan.status === 'dipinjam' ? 'var(--success)' : 'var(--danger)';
+                        const date = new Date(loan.tgl_pinjam).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                        return `
+                            <div class="recent-loan-item">
+                                <div class="loan-user-avatar">${(loan.nama_user || 'U').charAt(0).toUpperCase()}</div>
+                                <div class="loan-info">
+                                    <span class="loan-user-name">${loan.nama_user || 'User'}</span>
+                                    <span class="loan-book-title">${loan.judul || 'Buku'}</span>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span class="status-badge ${loan.status}">${loan.status}</span>
+                                    <span class="loan-date">${date}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

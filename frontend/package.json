@@ -1,0 +1,13 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Library Management System",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve -p 3000",
+    "dev": "serve -p 3000"
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}
