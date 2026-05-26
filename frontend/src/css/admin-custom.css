@@ -1,0 +1,135 @@
+/* Admin Custom CSS for Pengembalian and Laporan */
+
+/* TABS for Pengembalian */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border, #e2e8f0);
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-light, #718096);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.3s ease;
+    border-radius: 8px 8px 0 0;
+}
+
+.tab-btn:hover {
+    color: var(--primary, #5B4A3F);
+    background: rgba(91, 74, 63, 0.05);
+}
+
+.tab-btn.active {
+    color: var(--primary, #5B4A3F);
+    border-bottom-color: var(--primary, #5B4A3F);
+    background: rgba(91, 74, 63, 0.08);
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.4s ease forwards;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* STATS CARDS for Laporan */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--bg-card, #fff);
+    padding: 1.5rem 1rem;
+    border-radius: var(--radius, 12px);
+    box-shadow: var(--shadow, 0 4px 6px rgba(0,0,0,0.05));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border: 1px solid var(--border, #e2e8f0);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    border-color: var(--primary-light, #8B7355);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.8rem;
+}
+
+.stat-num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-dark, #2d3748);
+    margin-bottom: 0.4rem;
+}
+
+.stat-lbl {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-light, #718096);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Denda Badge & Fine Preview */
+.denda-badge {
+    display: inline-block;
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.denda-badge.denda-none {
+    background: rgba(160, 174, 192, 0.15);
+    color: #4a5568;
+}
+.denda-badge.denda-ada {
+    background: rgba(237, 137, 54, 0.15);
+    color: #dd6b20;
+}
+
+.fine-preview-box {
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-top: 1.5rem;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+.fine-icon {
+    font-size: 1.8rem;
+    margin-right: 1rem;
+}
+.fine-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-light, #718096);
+    margin-bottom: 0.2rem;
+}
+.fine-amount {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #dd6b20;
+}
+.fine-amount.zero {
+    color: #38a169;
+}

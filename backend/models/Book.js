@@ -22,6 +22,31 @@ class Book {
         return result.insertId;
     }
 
+    static async createBulk(books) {
+        if (!books || books.length === 0) return 0;
+        
+        const values = [];
+        const placeholders = [];
+        
+        for (const b of books) {
+            placeholders.push('(?, ?, ?, ?, ?, ?, ?, ?)');
+            values.push(
+                b.judul,
+                b.penulis || null,
+                b.penerbit || null,
+                b.tahun || null,
+                b.stok || 0,
+                b.deskripsi || null,
+                null, // cover default null untuk upload massal
+                b.kategori || 'lainnya'
+            );
+        }
+        
+        const query = `INSERT INTO buku (judul, penulis, penerbit, tahun, stok, deskripsi, cover, kategori) VALUES ${placeholders.join(', ')}`;
+        const [result] = await db.query(query, values);
+        return result.affectedRows;
+    }
+
     static async update(id, data) {
         const { judul, penulis, penerbit, tahun, stok, deskripsi, cover, kategori } = data;
         

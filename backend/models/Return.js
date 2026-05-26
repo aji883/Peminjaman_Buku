@@ -75,6 +75,7 @@ class Return {
                 pen.id_pengembalian,
                 pen.tgl_kembali_real,
                 pen.denda,
+                pen.denda_dibayar,
                 pen.status,
                 pen.created_at,
                 p.id_peminjaman,

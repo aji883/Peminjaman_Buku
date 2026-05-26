@@ -66,4 +66,22 @@ router.patch('/:id/status', authMiddleware, async (req, res) => {
     }
 });
 
+// Delete loan history (User)
+router.delete('/:id', authMiddleware, async (req, res) => {
+    try {
+        const loanId = req.params.id;
+        const userId = req.user.id;
+
+        const success = await Loan.delete(loanId, userId);
+        if (!success) {
+            return res.status(404).json({ message: 'Riwayat peminjaman tidak ditemukan atau tidak dapat dihapus' });
+        }
+
+        res.json({ message: 'Riwayat peminjaman berhasil dihapus' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Gagal menghapus riwayat peminjaman' });
+    }
+});
+
 module.exports = router;

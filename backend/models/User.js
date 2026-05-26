@@ -48,6 +48,71 @@ class User {
             }
         };
     }
+
+    static async update(userId, data) {
+        const { nama, password } = data;
+        let query = 'UPDATE user SET nama = ?';
+        const params = [nama];
+        
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+            query += ', password = ?';
+            params.push(hashedPassword);
+        }
+        
+        query += ' WHERE id_user = ?';
+        params.push(userId);
+        
+        const [result] = await db.query(query, params);
+        return result.affectedRows > 0;
+    }
+
+    static async findById(userId) {
+        const [rows] = await db.query('SELECT id_user, nama, email, saldo, created_at FROM user WHERE id_user = ?', [userId]);
+        return rows[0];
+    }
+
+    static async findByIdWithPassword(userId) {
+        const [rows] = await db.query('SELECT id_user, nama, email, password FROM user WHERE id_user = ?', [userId]);
+        return rows[0];
+    }
+
+    static async getAll() {
+        const [rows] = await db.query('SELECT id_user, nama, email, saldo, created_at FROM user ORDER BY created_at DESC');
+        return rows;
+    }
+
+    static async delete(userId) {
+        const connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        try {
+            // Delete saldo transactions
+            await connection.query('DELETE FROM transaksi_saldo WHERE id_user = ?', [userId]);
+
+            // Delete returns associated with this user's loans
+            await connection.query(
+                `DELETE FROM pengembalian WHERE id_peminjaman IN 
+                (SELECT id_peminjaman FROM peminjaman WHERE id_user = ?)`,
+                [userId]
+            );
+
+            // Delete loans
+            await connection.query('DELETE FROM peminjaman WHERE id_user = ?', [userId]);
+
+            // Finally, delete the user
+            const [result] = await connection.query('DELETE FROM user WHERE id_user = ?', [userId]);
+
+            await connection.commit();
+            return result.affectedRows > 0;
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
+    }
 }
 
 module.exports = User;

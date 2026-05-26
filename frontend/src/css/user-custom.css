@@ -1,0 +1,351 @@
+/* User Custom CSS for Katalog and Profil */
+
+/* 1. Category Pills (Katalog) */
+.category-pills-container {
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    padding: 0.5rem 0.2rem;
+}
+.category-pills {
+    display: flex;
+    gap: 0.75rem;
+}
+.pill-btn {
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, #e2e8f0);
+    padding: 0.6rem 1.2rem;
+    border-radius: 2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-medium, #4a5568);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+.pill-btn:hover {
+    border-color: var(--primary, #5B4A3F);
+    color: var(--primary, #5B4A3F);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+.pill-btn.active {
+    background: var(--primary, #5B4A3F);
+    color: white;
+    border-color: var(--primary, #5B4A3F);
+}
+
+/* 2. Loan History Cards (Profil) */
+.loan-history-slider-container {
+    overflow: hidden;
+    position: relative;
+    padding: 0.5rem;
+}
+.loan-history-track {
+    transition: transform 0.4s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* ROW_SHIFT_HEIGHT uses 112px height + 16px gap = 128px */
+}
+.loan-history-card {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 12px;
+    padding: 1rem;
+    gap: 1.5rem;
+    height: 112px; 
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: box-shadow 0.3s ease;
+}
+.loan-history-card:hover {
+    box-shadow: 0 8px 12px rgba(0,0,0,0.05);
+}
+.loan-cover {
+    width: 60px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.loan-details {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.loan-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-dark, #2d3748);
+    margin: 0 0 0.4rem 0;
+}
+.loan-dates {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-light, #718096);
+}
+.loan-date-item i {
+    margin-right: 0.3rem;
+}
+.btn-delete-loan {
+    background: rgba(231, 76, 60, 0.1);
+    color: #E74C3C;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+.btn-delete-loan:hover {
+    background: #E74C3C;
+    color: white;
+}
+
+/* 3. 3D Member Card (Profil) */
+.profile-top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+@media (max-width: 900px) {
+    .profile-top-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.member-card-wrapper {
+    perspective: 1000px;
+    width: 100%;
+    max-width: 400px;
+    height: 250px;
+    margin: 0 auto;
+    cursor: grab;
+}
+.member-card-wrapper:active {
+    cursor: grabbing;
+}
+.member-card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+.member-card-inner.dragging {
+    transition: none;
+}
+.card-front, .card-back {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.card-front {
+    background: linear-gradient(135deg, var(--primary, #5B4A3F) 0%, #3a2e26 100%);
+    color: white;
+    padding: 1.5rem;
+}
+.card-back {
+    background: #f8f9fa;
+    color: #333;
+    transform: rotateY(180deg);
+    border: 1px solid #ddd;
+}
+/* Front Elements */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.card-logo {
+    font-weight: 800;
+    letter-spacing: 1px;
+    font-size: 1.1rem;
+}
+.card-type {
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.2);
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+}
+.card-middle {
+    flex: 1;
+}
+.card-id {
+    font-family: monospace;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    opacity: 0.9;
+    margin-bottom: 0.3rem;
+}
+.card-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.card-saldo-label {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+.card-saldo-amount {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #f1c40f;
+}
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 1rem;
+}
+.card-meta-item .label {
+    display: block;
+    font-size: 0.65rem;
+    opacity: 0.7;
+}
+.card-meta-item .value {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.card-barcode {
+    display: flex;
+    height: 24px;
+    gap: 2px;
+    background: rgba(255,255,255,0.8);
+    padding: 4px;
+    border-radius: 4px;
+}
+.barcode-line {
+    width: 2px;
+    background: #000;
+    height: 100%;
+}
+.barcode-line.mid { width: 4px; }
+.barcode-line.thick { width: 6px; }
+
+/* Back Elements */
+.magnetic-strip {
+    height: 40px;
+    background: #2c3e50;
+    margin-top: 1.5rem;
+}
+.card-back-content {
+    display: flex;
+    padding: 1rem;
+    flex: 1;
+    gap: 1rem;
+}
+.card-back-left, .card-back-right {
+    flex: 1;
+}
+.card-chip {
+    width: 40px;
+    height: 30px;
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    border: 1px solid #d4a373;
+}
+.rules-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.card-rules ul {
+    margin: 0;
+    padding-left: 1rem;
+    font-size: 0.65rem;
+    color: #555;
+}
+.signature-strip {
+    background: #fff;
+    border: 1px solid #ccc;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    margin-bottom: 1rem;
+}
+.signature-text {
+    font-family: 'Brush Script MT', cursive;
+    font-size: 1.2rem;
+    color: #0056b3;
+}
+.card-back-info p {
+    margin: 0;
+    font-size: 0.65rem;
+    color: #666;
+}
+.card-back-footer {
+    background: #e9ecef;
+    text-align: center;
+    padding: 0.3rem;
+    font-size: 0.6rem;
+    color: #777;
+}
+
+/* Saldo & Denda Panel */
+.saldo-panel {
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+.saldo-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.saldo-panel-header h4 {
+    margin: 0;
+    color: var(--text-medium, #4a5568);
+}
+.saldo-big {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--primary, #5B4A3F);
+}
+.denda-item {
+    display: flex;
+    align-items: center;
+    background: #fff3e0;
+    border: 1px solid #ffcc80;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+.denda-item-info {
+    flex: 1;
+}
+.denda-item-info h5 {
+    margin: 0 0 0.2rem 0;
+    color: #e65100;
+}
+.denda-item-info p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #e65100;
+    opacity: 0.8;
+}
+.denda-amount {
+    font-weight: 800;
+    color: #e65100;
+    margin-right: 1rem;
+}

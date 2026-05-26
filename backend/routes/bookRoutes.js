@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const Book = require('../models/Book');
+const Loan = require('../models/Loan');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // Multer configuration
@@ -28,6 +29,31 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get book availability info (earliest return date for out-of-stock books)
+router.get('/:id/availability', async (req, res) => {
+    try {
+        const book = await Book.getById(req.params.id);
+        if (!book) return res.status(404).json({ message: 'Book not found' });
+
+        if (book.stok > 0) {
+            return res.json({ available: true, stok: book.stok });
+        }
+
+        const earliest = await Loan.getEarliestReturnDate(req.params.id);
+        if (earliest) {
+            return res.json({
+                available: false,
+                earliest_return: earliest.tgl_kembali
+            });
+        }
+
+        res.json({ available: false, earliest_return: null });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error checking availability' });
+    }
+});
+
 router.get('/:id', async (req, res) => {
     try {
         const book = await Book.getById(req.params.id);
@@ -35,6 +61,26 @@ router.get('/:id', async (req, res) => {
         res.json(book);
     } catch (error) {
         res.status(500).json({ message: 'Error retrieving book' });
+    }
+});
+
+router.post('/bulk', authMiddleware, async (req, res) => {
+    try {
+        const books = req.body;
+        if (!Array.isArray(books) || books.length === 0) {
+            return res.status(400).json({ message: 'Data buku tidak valid' });
+        }
+        
+        // Pastikan setiap buku minimal ada judul
+        for (const b of books) {
+            if (!b.judul) return res.status(400).json({ message: 'Setiap baris harus memiliki judul' });
+        }
+
+        const affectedRows = await Book.createBulk(books);
+        res.status(201).json({ message: `${affectedRows} buku berhasil ditambahkan` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Terjadi kesalahan saat menyimpan data massal' });
     }
 });
 

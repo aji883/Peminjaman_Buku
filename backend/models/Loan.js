@@ -80,6 +80,27 @@ class Loan {
             connection.release();
         }
     }
+
+    static async getEarliestReturnDate(bookId) {
+        const [rows] = await db.query(
+            `SELECT p.tgl_kembali, u.nama as nama_peminjam
+             FROM peminjaman p
+             JOIN user u ON p.id_user = u.id_user
+             WHERE p.id_buku = ? AND p.status = 'dipinjam'
+             ORDER BY p.tgl_kembali ASC
+             LIMIT 1`,
+            [bookId]
+        );
+        return rows[0] || null;
+    }
+
+    static async delete(loanId, userId) {
+        const [result] = await db.query(
+            'DELETE FROM peminjaman WHERE id_peminjaman = ? AND id_user = ?',
+            [loanId, userId]
+        );
+        return result.affectedRows > 0;
+    }
 }
 
 module.exports = Loan;
