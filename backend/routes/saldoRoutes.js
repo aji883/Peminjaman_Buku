@@ -127,6 +127,12 @@ router.post('/bayar-denda/:id_pengembalian', authMiddleware, async (req, res) =>
         );
         
         await conn.commit();
+        
+        // Notify realtime update
+        if (typeof global.sendRealtimeUpdate === 'function') {
+            global.sendRealtimeUpdate(userId, 'saldo_update', { saldo: newSaldo });
+        }
+
         res.json({ 
             message: 'Denda berhasil dibayar!', 
             saldo_baru: newSaldo 
@@ -182,6 +188,12 @@ router.post('/topup', authMiddleware, async (req, res) => {
             );
             
             await conn.commit();
+
+            // Notify realtime update
+            if (typeof global.sendRealtimeUpdate === 'function') {
+                global.sendRealtimeUpdate(id_user, 'saldo_update', { saldo: newSaldo });
+            }
+
             res.json({ 
                 message: 'Top up saldo berhasil!', 
                 id_user,

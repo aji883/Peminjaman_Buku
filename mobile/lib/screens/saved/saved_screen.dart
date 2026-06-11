@@ -38,7 +38,7 @@ class SavedScreen extends StatelessWidget {
                       TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
                       TextButton(
                         onPressed: () {
-                          context.read<SavedProvider>().loadSavedBooks(); // actually we should clear all
+                          context.read<SavedProvider>().clearAll();
                           Navigator.pop(ctx);
                         }, 
                         child: const Text('Hapus', style: TextStyle(color: AppColors.error)),

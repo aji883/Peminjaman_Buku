@@ -1,6 +1,8 @@
 const express = require('express'); // v2
 const cors = require('cors');
 const path = require('path');
+const http = require('http');
+const WebSocket = require('ws');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
@@ -11,6 +13,59 @@ const waitingListRoutes = require('./routes/waitingListRoutes');
 const saldoRoutes = require('./routes/saldoRoutes');
 
 const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
+const clients = new Map(); // maps userId (int) -> Set of WebSocket clients
+
+wss.on('connection', (ws) => {
+    console.log('New WebSocket connection established');
+    
+    ws.on('message', (message) => {
+        try {
+            const data = JSON.parse(message);
+            if (data.type === 'subscribe') {
+                const userId = parseInt(data.userId);
+                if (!isNaN(userId)) {
+                    ws.userId = userId;
+                    if (!clients.has(userId)) {
+                        clients.set(userId, new Set());
+                    }
+                    clients.get(userId).add(ws);
+                    console.log(`WebSocket client subscribed to userId: ${userId}`);
+                }
+            }
+        } catch (err) {
+            console.error('Error parsing WebSocket message:', err);
+        }
+    });
+
+    ws.on('close', () => {
+        console.log('WebSocket connection closed');
+        if (ws.userId && clients.has(ws.userId)) {
+            const userClients = clients.get(ws.userId);
+            userClients.delete(ws);
+            if (userClients.size === 0) {
+                clients.delete(ws.userId);
+            }
+        }
+    });
+});
+
+// Global helper to send realtime updates
+global.sendRealtimeUpdate = (userId, type, data) => {
+    const parsedUserId = parseInt(userId);
+    if (clients.has(parsedUserId)) {
+        const userClients = clients.get(parsedUserId);
+        const payload = JSON.stringify({ type, ...data });
+        console.log(`Sending realtime update to userId ${parsedUserId}: ${payload}`);
+        userClients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(payload);
+            }
+        });
+    }
+};
 
 // Middleware
 app.use(cors());
@@ -19,7 +74,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Global Logger
 app.use((req, res, next) => {
-    console.log(`\${req.method} \${req.url}`);
+    console.log(`${req.method} ${req.url}`);
     next();
 });
 
@@ -35,6 +90,6 @@ app.use('/api/waiting-list', waitingListRoutes);
 app.use('/api/saldo', saldoRoutes);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Backend Server API is running on http://localhost:\${PORT}`);
+server.listen(PORT, () => {
+    console.log(`Backend Server API is running on http://localhost:${PORT}`);
 });

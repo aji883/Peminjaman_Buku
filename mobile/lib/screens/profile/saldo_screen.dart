@@ -78,7 +78,11 @@ class SaldoScreen extends StatelessWidget {
                                   color: isTopup ? AppColors.success : AppColors.error,
                                 ),
                               ),
-                              title: Text(isTopup ? 'Top Up Saldo' : 'Pembayaran Denda'),
+                              title: Text(
+                                tx.keterangan != null && tx.keterangan!.isNotEmpty
+                                    ? tx.keterangan!
+                                    : (isTopup ? 'Top Up Saldo' : 'Pembayaran Denda'),
+                              ),
                               subtitle: Text(Helpers.formatDate(tx.createdAt)),
                               trailing: Text(
                                 '${isTopup ? '+' : '-'} ${Helpers.formatCurrency(tx.jumlah)}',

@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const Book = require('../models/Book');
 const Loan = require('../models/Loan');
+const SavedBook = require('../models/SavedBook');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // Multer configuration
@@ -19,6 +20,48 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// Saved Books Routes
+router.get('/saved', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const saved = await SavedBook.getByUserId(userId);
+        res.json(saved);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Gagal mengambil buku tersimpan' });
+    }
+});
+
+router.post('/saved', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { id_buku } = req.body;
+        if (!id_buku) {
+            return res.status(400).json({ message: 'id_buku wajib diisi' });
+        }
+        await SavedBook.add(userId, id_buku);
+        res.status(201).json({ message: 'Buku berhasil disimpan' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Gagal menyimpan buku' });
+    }
+});
+
+router.delete('/saved/:id_buku', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const bookId = req.params.id_buku;
+        const deleted = await SavedBook.delete(userId, bookId);
+        if (!deleted) {
+            return res.status(404).json({ message: 'Buku tersimpan tidak ditemukan' });
+        }
+        res.json({ message: 'Buku berhasil dihapus dari daftar tersimpan' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Gagal menghapus buku tersimpan' });
+    }
+});
+
 // Routes
 router.get('/', async (req, res) => {
     try {
@@ -26,6 +69,20 @@ router.get('/', async (req, res) => {
         res.json(books);
     } catch (error) {
         res.status(500).json({ message: 'Error retrieving books' });
+    }
+});
+
+// Public stats for footer
+router.get('/stats', async (req, res) => {
+    try {
+        const db = require('../config/db');
+        const [[{totalBooks}]] = await db.query('SELECT COUNT(*) AS totalBooks FROM buku');
+        const [[{totalUsers}]] = await db.query('SELECT COUNT(*) AS totalUsers FROM user');
+        const [[{activeLoan}]] = await db.query("SELECT COUNT(*) AS activeLoan FROM peminjaman WHERE status = 'dipinjam'");
+        res.json({ totalBooks, totalUsers, activeLoan });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching stats' });
     }
 });
 

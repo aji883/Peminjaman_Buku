@@ -1,3 +1,5 @@
+import '../utils/helpers.dart';
+
 class UserModel {
   final int idUser;
   final String nama;
@@ -15,10 +17,10 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      idUser: json['id_user'] ?? 0,
+      idUser: json['id_user'] ?? json['id'] ?? 0,
       nama: json['nama'] ?? '',
       email: json['email'] ?? '',
-      saldo: (json['saldo'] ?? 0).toDouble(),
+      saldo: Helpers.parseDouble(json['saldo']),
       createdAt: json['created_at'],
     );
   }

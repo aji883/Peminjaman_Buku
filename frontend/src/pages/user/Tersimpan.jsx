@@ -43,49 +43,93 @@ const Tersimpan = () => {
         }
     }, [searchQuery, savedBooks]);
 
+
     const loadData = async () => {
         try {
             const booksData = await fetchAPI('/books');
             setAllBooks(booksData);
 
             const storageKey = `saved_books_${sessionStorage.getItem('user_id') || 'guest'}`;
-            const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            const ids = saved.map(Number);
-            setSavedBookIds(ids);
+            let localSaved = [];
+            try {
+                localSaved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            } catch (e) {
+                localSaved = [];
+            }
 
-            const filtered = booksData.filter(b => ids.includes(Number(b.id_buku)));
-            setSavedBooks(filtered);
-            setFilteredSavedBooks(filtered);
+            // Fetch online saved books
+            const savedData = await fetchAPI('/books/saved');
+            let onlineIds = savedData.map(b => Number(b.id_buku));
+
+            // Sync if local books exist
+            if (localSaved.length > 0) {
+                for (const bookId of localSaved) {
+                    const id = Number(bookId);
+                    if (!onlineIds.includes(id)) {
+                        try {
+                            await fetchAPI('/books/saved', {
+                                method: 'POST',
+                                body: JSON.stringify({ id_buku: id })
+                            });
+                            onlineIds.push(id);
+                        } catch (err) {
+                            console.error(`Gagal mensinkronisasikan buku ${id}:`, err);
+                        }
+                    }
+                }
+                localStorage.setItem(storageKey, '[]');
+                // Refetch after sync
+                const updatedSavedData = await fetchAPI('/books/saved');
+                setSavedBookIds(onlineIds);
+                setSavedBooks(updatedSavedData);
+                setFilteredSavedBooks(updatedSavedData);
+            } else {
+                setSavedBookIds(onlineIds);
+                setSavedBooks(savedData);
+                setFilteredSavedBooks(savedData);
+            }
         } catch (err) {
             console.error(err);
             toast.error('Gagal memuat buku tersimpan.');
         }
     };
 
-    const removeSaved = (bookId) => {
+    const removeSaved = async (bookId) => {
         bookId = Number(bookId);
-        let saved = [...savedBookIds].filter(id => id !== bookId);
-        
-        const storageKey = `saved_books_${sessionStorage.getItem('user_id') || 'guest'}`;
-        localStorage.setItem(storageKey, JSON.stringify(saved));
-        setSavedBookIds(saved);
-        
-        const updatedSaved = savedBooks.filter(b => b.id_buku !== bookId);
-        setSavedBooks(updatedSaved);
-
-        toast('Buku dihapus dari tersimpan', { icon: 'ℹ️' });
+        try {
+            await fetchAPI(`/books/saved/${bookId}`, {
+                method: 'DELETE'
+            });
+            const updatedIds = savedBookIds.filter(id => id !== bookId);
+            setSavedBookIds(updatedIds);
+            
+            const updatedSaved = savedBooks.filter(b => Number(b.id_buku) !== bookId);
+            setSavedBooks(updatedSaved);
+            setFilteredSavedBooks(updatedSaved);
+            toast('Buku dihapus dari tersimpan', { icon: 'ℹ️' });
+        } catch (err) {
+            console.error(err);
+            toast.error(err.message || 'Gagal menghapus buku dari tersimpan');
+        }
     };
 
-    const clearAllSaved = () => {
+    const clearAllSaved = async () => {
         if (!window.confirm('Hapus semua buku dari daftar tersimpan?')) return;
         
-        const storageKey = `saved_books_${sessionStorage.getItem('user_id') || 'guest'}`;
-        localStorage.setItem(storageKey, '[]');
-        setSavedBookIds([]);
-        setSavedBooks([]);
-        setFilteredSavedBooks([]);
-        
-        toast('Semua buku dihapus dari tersimpan', { icon: 'ℹ️' });
+        try {
+            await Promise.all(savedBookIds.map(bookId => 
+                fetchAPI(`/books/saved/${bookId}`, { method: 'DELETE' })
+            ));
+            
+            setSavedBookIds([]);
+            setSavedBooks([]);
+            setFilteredSavedBooks([]);
+            toast('Semua buku dihapus dari tersimpan', { icon: 'ℹ️' });
+        } catch (err) {
+            console.error(err);
+            toast.error('Beberapa buku gagal dihapus dari tersimpan');
+            loadData();
+        }
     };
 
     const openBookDetail = (book) => {

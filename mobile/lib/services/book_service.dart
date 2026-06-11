@@ -17,4 +17,18 @@ class BookService {
   static Future<Map<String, dynamic>> checkAvailability(int id) async {
     return await ApiService.get(ApiConfig.bookAvailability(id));
   }
+
+  static Future<List<BookModel>> getSavedBooks() async {
+    final response = await ApiService.get(ApiConfig.savedBooks, auth: true);
+    final List<dynamic> data = response;
+    return data.map((json) => BookModel.fromJson(json)).toList();
+  }
+
+  static Future<void> saveBook(int bookId) async {
+    await ApiService.post(ApiConfig.savedBooks, {'id_buku': bookId}, auth: true);
+  }
+
+  static Future<void> removeSavedBook(int bookId) async {
+    await ApiService.delete(ApiConfig.deleteSavedBook(bookId), auth: true);
+  }
 }

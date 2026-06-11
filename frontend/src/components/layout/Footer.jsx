@@ -1,6 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchAPI } from '../../api/api';
 
-const Footer = ({ totalBooks = 0 }) => {
+const Footer = () => {
+    const [stats, setStats] = useState({ totalBooks: 0, totalUsers: 0, activeLoan: 0 });
+
+    useEffect(() => {
+        const loadStats = async () => {
+            try {
+                const data = await fetchAPI('/books/stats');
+                setStats(data);
+            } catch (err) {
+                console.error('Failed to load footer stats:', err);
+            }
+        };
+        loadStats();
+    }, []);
+
     return (
         <footer className="site-footer" id="siteFooter">
             <div className="footer-wave">
@@ -84,17 +99,17 @@ const Footer = ({ totalBooks = 0 }) => {
 
                 {/* Footer Stats Strip */}
                 <div className="footer-stats-strip" style={{ display: 'flex', justifyContent: 'center', gap: '3rem', padding: '1.25rem 0', borderTop: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)', marginTop: '2rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItem: 'center', gap: '0.6rem', color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem' }}>
                         <i className="fas fa-book" style={{ color: 'var(--accent)', fontSize: '1rem' }}></i>
-                        <span>Total Koleksi: <strong style={{ color: 'white', fontWeight: 600 }}>{totalBooks}</strong></span>
+                        <span>Total Koleksi: <strong style={{ color: 'white', fontWeight: 600 }}>{stats.totalBooks}</strong></span>
                     </div>
-                    <div style={{ display: 'flex', alignItem: 'center', gap: '0.6rem', color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem' }}>
                         <i className="fas fa-users" style={{ color: '#00B894', fontSize: '1rem' }}></i>
-                        <span>Anggota Aktif: <strong style={{ color: 'white', fontWeight: 600 }}>124</strong></span>
+                        <span>Anggota Aktif: <strong style={{ color: 'white', fontWeight: 600 }}>{stats.totalUsers}</strong></span>
                     </div>
-                    <div style={{ display: 'flex', alignItem: 'center', gap: '0.6rem', color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'rgba(255,255,255,0.75)', fontSize: '0.82rem' }}>
                         <i className="fas fa-hand-holding" style={{ color: '#0984E3', fontSize: '1rem' }}></i>
-                        <span>Sedang Dipinjam: <strong style={{ color: 'white', fontWeight: 600 }}>18</strong></span>
+                        <span>Sedang Dipinjam: <strong style={{ color: 'white', fontWeight: 600 }}>{stats.activeLoan}</strong></span>
                     </div>
                 </div>
 

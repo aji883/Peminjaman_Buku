@@ -1,3 +1,5 @@
+import '../utils/helpers.dart';
+
 class SaldoTransaction {
   final int idTransaksi;
   final int? idUser;
@@ -24,9 +26,9 @@ class SaldoTransaction {
       idTransaksi: json['id_transaksi'] ?? 0,
       idUser: json['id_user'],
       jenis: json['jenis'] ?? '',
-      jumlah: (json['jumlah'] ?? 0).toDouble(),
-      saldoSebelum: (json['saldo_sebelum'] ?? 0).toDouble(),
-      saldoSesudah: (json['saldo_sesudah'] ?? 0).toDouble(),
+      jumlah: Helpers.parseDouble(json['jumlah']),
+      saldoSebelum: Helpers.parseDouble(json['saldo_sebelum']),
+      saldoSesudah: Helpers.parseDouble(json['saldo_sesudah']),
       keterangan: json['keterangan'],
       createdAt: json['created_at'],
     );
@@ -53,7 +55,7 @@ class DendaItem {
   factory DendaItem.fromJson(Map<String, dynamic> json) {
     return DendaItem(
       idPengembalian: json['id_pengembalian'] ?? 0,
-      denda: (json['denda'] ?? 0).toDouble(),
+      denda: Helpers.parseDouble(json['denda']),
       tglKembaliReal: json['tgl_kembali_real'],
       dendaDibayar: json['denda_dibayar'] ?? 0,
       judul: json['judul'],

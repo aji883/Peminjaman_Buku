@@ -46,13 +46,50 @@ const Koleksi = () => {
         }
     };
 
-    const loadSavedBooks = () => {
+    const loadSavedBooks = async () => {
         try {
             const storageKey = `saved_books_${sessionStorage.getItem('user_id') || 'guest'}`;
-            const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            setSavedBookIds(saved.map(Number));
-        } catch {
-            setSavedBookIds([]);
+            let localSaved = [];
+            try {
+                localSaved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            } catch (e) {
+                localSaved = [];
+            }
+            
+            // Fetch online saved books
+            const savedData = await fetchAPI('/books/saved');
+            let onlineIds = savedData.map(b => Number(b.id_buku));
+            
+            // If we have local books not synced yet, sync them
+            if (localSaved.length > 0) {
+                for (const bookId of localSaved) {
+                    const id = Number(bookId);
+                    if (!onlineIds.includes(id)) {
+                        try {
+                            await fetchAPI('/books/saved', {
+                                method: 'POST',
+                                body: JSON.stringify({ id_buku: id })
+                            });
+                            onlineIds.push(id);
+                        } catch (err) {
+                            console.error(`Gagal mensinkronisasikan buku ${id}:`, err);
+                        }
+                    }
+                }
+                // Clear local storage after successful sync
+                localStorage.setItem(storageKey, '[]');
+            }
+            
+            setSavedBookIds(onlineIds);
+        } catch (err) {
+            console.error('Gagal memuat buku tersimpan dari server:', err);
+            try {
+                const storageKey = `saved_books_${sessionStorage.getItem('user_id') || 'guest'}`;
+                const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                setSavedBookIds(saved.map(Number));
+            } catch {
+                setSavedBookIds([]);
+            }
         }
     };
 
@@ -60,24 +97,33 @@ const Koleksi = () => {
         return savedBookIds.includes(Number(bookId));
     };
 
-    const toggleSaveBook = (e, bookId) => {
+    const toggleSaveBook = async (e, bookId) => {
         e.stopPropagation();
         bookId = Number(bookId);
         let saved = [...savedBookIds];
         let nowSaved = false;
 
-        if (saved.includes(bookId)) {
-            saved = saved.filter(id => id !== bookId);
-            toast('Buku dihapus dari tersimpan', { icon: 'ℹ️' });
-        } else {
-            saved.push(bookId);
-            toast.success('Buku berhasil disimpan!');
-            nowSaved = true;
+        try {
+            if (saved.includes(bookId)) {
+                await fetchAPI(`/books/saved/${bookId}`, {
+                    method: 'DELETE'
+                });
+                saved = saved.filter(id => id !== bookId);
+                toast('Buku dihapus dari tersimpan', { icon: 'ℹ️' });
+            } else {
+                await fetchAPI('/books/saved', {
+                    method: 'POST',
+                    body: JSON.stringify({ id_buku: bookId })
+                });
+                saved.push(bookId);
+                toast.success('Buku berhasil disimpan!');
+                nowSaved = true;
+            }
+            setSavedBookIds(saved);
+        } catch (err) {
+            console.error(err);
+            toast.error(err.message || 'Gagal mengubah status tersimpan buku');
         }
-
-        const storageKey = `saved_books_${sessionStorage.getItem('user_id') || 'guest'}`;
-        localStorage.setItem(storageKey, JSON.stringify(saved));
-        setSavedBookIds(saved);
         return nowSaved;
     };
 

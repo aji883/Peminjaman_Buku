@@ -4,6 +4,15 @@ class ApiConfig {
   static const String baseUrl = 'http://localhost:5000/api';
   static const String uploadsUrl = 'http://localhost:5000/uploads';
 
+  static String get wsUrl {
+    final cleanUrl = baseUrl.replaceAll('/api', '');
+    if (cleanUrl.startsWith('https://')) {
+      return cleanUrl.replaceAll('https://', 'wss://');
+    } else {
+      return cleanUrl.replaceAll('http://', 'ws://');
+    }
+  }
+
   // Auth
   static const String login = '/auth/user/login';
   static const String register = '/auth/user/register';
@@ -13,6 +22,8 @@ class ApiConfig {
   // Books
   static const String books = '/books';
   static String bookAvailability(int id) => '/books/$id/availability';
+  static const String savedBooks = '/books/saved';
+  static String deleteSavedBook(int id) => '/books/saved/$id';
 
   // Loans
   static const String loans = '/loans';

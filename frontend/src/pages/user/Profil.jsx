@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { fetchAPI } from '../../api/api';
+import { fetchAPI, API_URL } from '../../api/api';
 import UserLayout from '../../components/layout/UserLayout';
 import toast, { Toaster } from 'react-hot-toast';
 
@@ -64,8 +64,64 @@ const Profil = () => {
         loadUserSaldo();
         loadDendaList();
 
+        // WebSocket setup for real-time updates
+        let socket;
+        let reconnectTimer;
+        
+        const connectWS = () => {
+            const storedId = sessionStorage.getItem('user_id') || '0';
+            if (storedId === '0') return;
+
+            try {
+                // Construct WS URL from API_URL
+                const wsBase = API_URL.replace('/api', '').replace(/^http/, 'ws');
+                console.log('Connecting to WebSocket:', wsBase);
+                socket = new WebSocket(wsBase);
+
+                socket.onopen = () => {
+                    console.log('Web WebSockets connected successfully');
+                    socket.send(JSON.stringify({
+                        type: 'subscribe',
+                        userId: parseInt(storedId)
+                    }));
+                };
+
+                socket.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.type === 'saldo_update') {
+                            console.log('Realtime saldo update received:', data);
+                            loadUserSaldo();
+                            loadDendaList();
+                            // Fetch transactions list directly (updating state for modal/UI)
+                            fetchAPI('/saldo/history').then(data => setTransactions(data || [])).catch(() => {});
+                        }
+                    } catch (err) {
+                        console.error('Error parsing WS message:', err);
+                    }
+                };
+
+                socket.onclose = () => {
+                    console.log('Web WebSockets disconnected, retrying in 5s...');
+                    reconnectTimer = setTimeout(connectWS, 5000);
+                };
+
+                socket.onerror = (err) => {
+                    console.error('WS Error:', err);
+                    socket.close();
+                };
+            } catch (error) {
+                console.error('Failed to create WebSocket connection:', error);
+                reconnectTimer = setTimeout(connectWS, 5000);
+            }
+        };
+
+        connectWS();
+
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
+            if (socket) socket.close();
+            if (reconnectTimer) clearTimeout(reconnectTimer);
         };
     }, []);
 

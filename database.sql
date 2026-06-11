@@ -58,6 +58,8 @@ CREATE TABLE IF NOT EXISTS `buku` (
   `penerbit` varchar(100) DEFAULT NULL,
   `tahun` year(4) DEFAULT NULL,
   `stok` int(11) DEFAULT 0,
+  `deskripsi` text DEFAULT NULL,
+  `cover` varchar(255) DEFAULT NULL,
   `kategori` varchar(50) DEFAULT 'lainnya',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_buku`)
@@ -76,6 +78,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `no_hp` varchar(15) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `password` varchar(255) NOT NULL,
+  `saldo` decimal(12,2) DEFAULT 0.00,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_user`),
   UNIQUE KEY `email` (`email`)
@@ -112,7 +115,7 @@ CREATE TABLE IF NOT EXISTS `peminjaman` (
   `id_buku` int(11) DEFAULT NULL,
   `tgl_pinjam` date DEFAULT NULL,
   `tgl_kembali` date DEFAULT NULL,
-  `status` enum('diproses','dipinjam','ditolak') DEFAULT 'diproses',
+  `status` enum('diproses','dipinjam','ditolak','dikembalikan') DEFAULT 'diproses',
   `approved_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_peminjaman`),
@@ -135,6 +138,7 @@ CREATE TABLE IF NOT EXISTS `pengembalian` (
   `id_peminjaman` int(11) DEFAULT NULL,
   `tgl_kembali_real` date DEFAULT NULL,
   `denda` int(11) DEFAULT 0,
+  `denda_dibayar` tinyint(1) DEFAULT 0,
   `status` enum('diproses','selesai') DEFAULT 'diproses',
   `verified_by` int(11) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -143,6 +147,45 @@ CREATE TABLE IF NOT EXISTS `pengembalian` (
   KEY `verified_by` (`verified_by`),
   CONSTRAINT `pengembalian_ibfk_1` FOREIGN KEY (`id_peminjaman`) REFERENCES `peminjaman` (`id_peminjaman`) ON DELETE CASCADE,
   CONSTRAINT `pengembalian_ibfk_2` FOREIGN KEY (`verified_by`) REFERENCES `admin` (`id_admin`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `transaksi_saldo`
+--
+
+CREATE TABLE IF NOT EXISTS `transaksi_saldo` (
+  `id_transaksi` int(11) NOT NULL AUTO_INCREMENT,
+  `id_user` int(11) NOT NULL,
+  `jenis` enum('topup','denda') NOT NULL,
+  `jumlah` decimal(12,2) NOT NULL,
+  `saldo_sebelum` decimal(12,2) NOT NULL,
+  `saldo_sesudah` decimal(12,2) NOT NULL,
+  `keterangan` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_transaksi`),
+  KEY `id_user` (`id_user`),
+  CONSTRAINT `transaksi_saldo_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `buku_tersimpan`
+--
+
+CREATE TABLE IF NOT EXISTS `buku_tersimpan` (
+  `id_saved` int(11) NOT NULL AUTO_INCREMENT,
+  `id_user` int(11) NOT NULL,
+  `id_buku` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_saved`),
+  UNIQUE KEY `user_book` (`id_user`,`id_buku`),
+  KEY `id_user` (`id_user`),
+  KEY `id_buku` (`id_buku`),
+  CONSTRAINT `buku_tersimpan_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `user` (`id_user`) ON DELETE CASCADE,
+  CONSTRAINT `buku_tersimpan_ibfk_2` FOREIGN KEY (`id_buku`) REFERENCES `buku` (`id_buku`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 COMMIT;

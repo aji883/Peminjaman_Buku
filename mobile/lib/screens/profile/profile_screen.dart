@@ -25,12 +25,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthProvider>().loadProfile();
-      context.read<SaldoProvider>().loadAll();
+      final authProvider = context.read<AuthProvider>();
+      final saldoProvider = context.read<SaldoProvider>();
+      authProvider.loadProfile().then((_) {
+        final user = authProvider.user;
+        if (user != null && mounted) {
+          saldoProvider.connectWebSocket(user.idUser);
+        }
+      });
+      saldoProvider.loadAll();
     });
   }
 
   void _logout() {
+    context.read<SaldoProvider>().disconnectWebSocket();
     context.read<AuthProvider>().logout();
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
   }

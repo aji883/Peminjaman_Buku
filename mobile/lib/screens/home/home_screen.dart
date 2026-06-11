@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/saved_provider.dart';
 import '../../utils/constants.dart';
 import '../catalog/catalog_screen.dart';
 import '../collection/collection_screen.dart';
@@ -14,6 +16,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SavedProvider>().loadSavedBooks();
+    });
+  }
 
   final List<Widget> _screens = [
     const CatalogScreen(),
